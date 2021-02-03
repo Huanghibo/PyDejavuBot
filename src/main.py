@@ -634,16 +634,17 @@ async def recognize_query_message(call: types.CallbackQuery, callback_data: dict
 @dp.message_handler(state=UploadQuery.step_1, content_types=types.ContentTypes.VOICE | types.ContentTypes.AUDIO)
 async def recognize_query_step_1_message(message: types.Message, state: FSMContext):
     random_str = generate_random_string(32)
-    file_id = message.voice.file_id
     path_list = path(message.chat.id, get_selected_folder_name(message.chat.id))
     
     if message.content_type == "voice":
+        file_id = message.voice.file_id
         if message.voice.mime_type == "audio/ogg":
             query_audio_file_extensions =  ".ogg"
         else:
              query_audio_file_extensions =  ".NULL"
             #await message.answer("Что-то пошло не так...", True)
     elif message.content_type == "audio":
+        file_id = message.audio.file_id
         name_file = message.audio.file_name ### New in Bot API 5.0
         query_audio_file_extensions = os.path.splitext(name_file)[1]
     

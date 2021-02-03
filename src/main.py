@@ -727,15 +727,15 @@ def async_wrap(func):
         return await loop.run_in_executor(executor, pfunc)
     return run 
 
-def on_startup(dispatcher):
-    global curent_folder_name
-    logging.info("Restoring curent folder data from file...")
-    with open(config.VARIABLES_FILE_STORAGE, 'wb') as f:
-        pickle.dump(curent_folder_name, f)
-
 def on_shutdown(dispatcher):
     global curent_folder_name
     logging.info("Saving curent folder data to file...")
+    with open(config.VARIABLES_FILE_STORAGE, 'wb') as f:
+        pickle.dump(curent_folder_name, f)
+
+def on_startup(dispatcher):
+    global curent_folder_name
+    logging.info("Restoring curent folder data from file...")
     with open(config.VARIABLES_FILE_STORAGE, 'rb') as f:
         curent_folder_name = pickle.load(f)
 

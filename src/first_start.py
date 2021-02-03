@@ -40,5 +40,9 @@ with open(f"{USER_DATA_PATH}/config.py", "w") as file:
     file.write(f"DATABASE_PATH = '{USER_DATA_PATH}/{db_name}.db'\n")
     file.write("# Declare audio recognizing mode\n")
     file.write(f"audfprint_mode = '{audfprint_mode}'\n")
+    file.write("# Declare users FSM state storage\n")
+    file.write(f"FSM_FILE_STORAGE = '{USER_DATA_PATH}/FSM_state_storage.json'\n")
+    file.write("# Declare users current folder storage\n")
+    file.write(f"VARIABLES_FILE_STORAGE = '{USER_DATA_PATH}/variables_storage.pkl'\n")
     
 print("Done!")

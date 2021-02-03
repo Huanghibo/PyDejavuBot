@@ -7,14 +7,10 @@
 # ===============================================================================================================================
 
 import sqlite3
-from user_data import config
-# import logging
-
-# logging.basicConfig(level=logging.INFO)
 
 class SQLighter:
 
-    def __init__(self, database=config.DATABASE_PATH):
+    def __init__(self, database):
         self.connection = sqlite3.connect(database)
         self.connection.execute("PRAGMA foreign_keys = ON") # Need for working with foreign keys in db
         self.cursor = self.connection.cursor()

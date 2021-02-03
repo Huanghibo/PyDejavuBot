@@ -586,15 +586,11 @@ async def remove_audio_sample_step_1_message(message: types.Message, state: FSMC
     managment_msg = await message.reply('Задача поставлена в поток!')
 
     try:
+        if len(db.select_user_audio_samples_list(message.chat.id, get_selected_folder_name(message.chat.id))) == 1:
+            os.remove(path_list.fingerprint_db())
+        else:
+            await delete_audio_hashes(managment_msg, path_list.fingerprint_db(), path_list.processed_audio_samples(user_data['chosen_sample'] + ".mp3"))
         db.unregister_audio_sample(message.chat.id, get_selected_folder_name(message.chat.id), user_data['chosen_sample'])
-        logging.info("Audio samples count in folder:")
-        logging.info(len(db.select_user_audio_samples_list(message.chat.id, get_selected_folder_name(message.chat.id))))
-        ###Todo
-        #if len(db.select_user_audio_samples_list(message.chat.id, get_selected_folder_name(message.chat.id))) == 1:
-#            os.remove(path_list.fingerprint_db())
-#            logging.info("Deliting fingerprint file")
-#        else:
-        await delete_audio_hashes(managment_msg, path_list.fingerprint_db(), path_list.processed_audio_samples(user_data['chosen_sample'] + ".mp3"))
     except Exception as ex:
         logging.exception(ex)
         keyboard_markup = types.InlineKeyboardMarkup()

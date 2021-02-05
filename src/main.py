@@ -164,7 +164,7 @@ async def match_audio_query(message, input_file, fingerprint_db) -> types.Messag
         managment_msg = await message.edit_text(message_text + " Критическая ошибка, отмена...")
         raise
     else:
-        managment_msg = await message.edit_text(message_text + f" Готово ✅\n\nРезультат:\n<code>{stdout.decode()}</code>\n")
+        managment_msg = await message.edit_text(message_text + f" Готово ✅\n\nРезультат:\n{stdout.decode()}\n")
     return managment_msg
 
 async def delete_audio_hashes(message, fingerprint_db, sample_name) -> types.Message:

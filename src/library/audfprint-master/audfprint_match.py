@@ -393,7 +393,7 @@ class Matcher(object):
         if len(rslts) == 0:
             # No matches returned at all
             nhashaligned = 0
-            print("Не найдено :(")
+            print("Это божественная музыка! Возможно, именно поэтому я не могу найти её. 😇")
             if self.verbose:
                 msgrslt.append("NOMATCH " + qrymsg)
             else:

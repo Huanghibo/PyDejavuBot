@@ -1,4 +1,4 @@
-# PyDejavuBot [βeta]
+# PyDejavuBot
 [![CodeFactor](https://www.codefactor.io/repository/github/zhymabekroman/pydejavubot/badge)](https://www.codefactor.io/repository/github/zhymabekroman/pydejavubot)
 
 |**English verssion** | [Русская версия](https://github.com/ZhymabekRoman/PyDejavuBot/blob/master/README-RU.md) |
@@ -6,14 +6,17 @@
 **PyDejavuBot** (a.k.a. **LenDejavuBot**) - Free Open Source Telegram Bot, designed for recognize a melody. The main focus of the bot is stability, speed, and audio recognitions quality. It can be considered an analogue of Shazam, but compared to Shazam and other similar audio recognition services, PyDejavuBot does not have its own centralized database with fingerprint, the user himself adds audio recordings and indicates the name. Audio recognition system based on Landmark audio fingerprinting system.
 
 ## Destination
-First of all, the bot is useful for professional musicians, who study at school, college, conservatory or other educational institutions. Few people know, but musicians have some music lessons, which are asked music quizzes, where you need to teach and remember each audio recording with the name of the audio recording itself. Sometimes that the list itself reaches up to 40 audio recordings. Undoubtedly, this is a very time-consuming job, and not everyone gets a good rating.
+In musical institutions, in addition to theory and practice, and the study of composers, you additionally need to know by heart all the famous works of the composer, as well as how they sound. And to check in what condition the student knows the works by heart, teachers periodically arrange music quizzes. For this, teachers pre-quiz give students audio recordings that will be on the quiz. In principle, learning 5-10 works is not difficult. But it happens that this list reaches up to 40 (!) Works, which is not so simple, and you need to know not only the name of the work, but also the composer, what tonality and exactly where (what action, part or act). This is still the beginning that I voiced, some teachers, for example, do not first put a record, but let's say from the middle. Here Shazam, with its base work will not help, you need to create your own flexible base with works.
+
+Bot operation principle:
+1 > You upload to bot the audio recording that the teacher gave you to prepare for the quiz
+2 > During a quiz, you go to a bot, turn on Quiz Mode, and send an audio message with a quiz and bot give you the title of the recording
 
 Shazam is not particularly useful here, since it sometimes does not correctly recognize the audio recording itself. If even correctly recognized, then the information of the recognized record is not enough for the teacher.
 
 ## Features
 - [x] Fully asynchronous Telegram Bot written in Python 3 with aiogram.
 - [x] High speed and accuracy recognition
-- [ ] Multilanguage supporting : En,  Ru, Kz (_WIP*_)
 
 ## Installation
 1) In Ubuntu or Debian based distribution install ffmpeg, python3, pip3 and git via apt:

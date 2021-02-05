@@ -9,7 +9,9 @@ import re
 import string
 import random
 import base64
+import asyncio
 from dataclasses import dataclass
+from functools import wraps, partial
 try:
     from user_data import config
 except ImportError:
@@ -62,3 +64,12 @@ def base64_decode(base64_message: str) -> str:
     message_bytes = base64.b64decode(base64_bytes)
     message = message_bytes.decode('ascii')
     return message
+
+def async_wrap(func):
+    @wraps(func)
+    async def run(*args, loop=None, executor=None, **kwargs):
+        if loop is None:
+            loop = asyncio.get_event_loop()
+        pfunc = partial(func, *args, **kwargs)
+        return await loop.run_in_executor(executor, pfunc)
+    return run 

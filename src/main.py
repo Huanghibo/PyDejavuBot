@@ -18,6 +18,7 @@ try:
 except ImportError:
     print("Please first configure config file via script 'first_start.py'")
     sys.exit(1)
+from pathlib import Path
 from database import SQLighter
 from aiogram.utils.callback_data import CallbackData
 from aiogram.utils.exceptions import BotBlocked, MessageNotModified
@@ -26,7 +27,6 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher import FSMContext
 from aiogram.contrib.fsm_storage.files import JSONStorage
 from other import *
-from functools import wraps, partial
 
 # Initalialization API token for work with Telegram Bot
 API_TOKEN = base64_decode(config.API_TOKEN)
@@ -56,8 +56,7 @@ recognize_query_cb = CallbackData("recognize_query_message", "folder_name")
 
 AVAILABLE_LANGUAGES = {
         "En": {'flag': "🇺🇸", 'name': "English"},
-        "Ru": {'flag': "🇷🇺", 'name': "Русский"},
-        "Uk": {'flag': "🇺🇦", 'name': "Українська"}
+        "Ru": {'flag': "🇷🇺", 'name': "Русский"}
     }
 
 class CreateFolder(StatesGroup):
@@ -86,21 +85,21 @@ def unset_selected_folder_name(user_id):
     curent_folder_name[user_id] = str("")
 
 async def download_file(message, file_id, destination) -> types.Message:
-    message_text = message.html_text + "\n\nЗагрузка файла..."
-    await message.edit_text(message_text + " Выполняем...", parse_mode="HTML")
+    message_text = message.text + "\n\nЗагрузка файла..."
+    await message.edit_text(message_text + " Выполняем...")
     try:
         await bot.download_file_by_id(file_id, destination)
         assert os.path.exists(destination)
     except Exception as ex:
-        managment_msg = await message.edit_text(message_text + " Критическая ошибка, отмена...", parse_mode="HTML")
+        managment_msg = await message.edit_text(message_text + " Критическая ошибка, отмена...")
         raise
     else:
-        managment_msg = await message.edit_text(message_text + " Готово ✅", parse_mode="HTML")
+        managment_msg = await message.edit_text(message_text + " Готово ✅")
     return managment_msg
 
 async def audio_processing(message, input_file, output_file) -> types.Message:
-    message_text = message.html_text + "\n\nПроверка на целостность, нормализация и конвертация аудио файла в формат mp3 через ffmpeg..."
-    await message.edit_text(message_text + " Выполняем...", parse_mode="HTML")
+    message_text = message.text + "\n\nПроверка на целостность, нормализация и конвертация аудио файла в формат mp3 через ffmpeg..."
+    await message.edit_text(message_text + " Выполняем...")
     try:
         cmd = ['ffmpeg-normalize', '-q', '-vn', input_file, '-c:a', 'libmp3lame', '-o', output_file]
         proc = await asyncio.create_subprocess_exec(*cmd, stdout=asyncio.subprocess.PIPE,stderr=asyncio.subprocess.PIPE)
@@ -111,15 +110,15 @@ async def audio_processing(message, input_file, output_file) -> types.Message:
         assert os.path.exists(output_file)
         assert proc.returncode == 0
     except Exception as ex:
-        managment_msg = await message.edit_text(message_text + " Критическая ошибка, отмена...", parse_mode="HTML")
+        managment_msg = await message.edit_text(message_text + " Критическая ошибка, отмена...")
         raise
     else:
-        managment_msg = await message.edit_text(message_text + " Готово ✅", parse_mode="HTML")
+        managment_msg = await message.edit_text(message_text + " Готово ✅")
     return managment_msg
 
 async def register_audio_hashes(message, input_file, fingerprint_db) -> types.Message:
-    message_text = message.html_text + "\n\nРегистрируем аудио хэши в база данных..."
-    await message.edit_text(message_text + " Выполняем...", parse_mode="HTML")
+    message_text = message.text + "\n\nРегистрируем аудио хэши в база данных..."
+    await message.edit_text(message_text + " Выполняем...")
     try:
         
         if os.path.exists(fingerprint_db) is False:
@@ -140,15 +139,15 @@ async def register_audio_hashes(message, input_file, fingerprint_db) -> types.Me
         assert os.path.exists(fingerprint_db)
         assert proc.returncode == 0
     except Exception as ex:
-        managment_msg = await message.edit_text(message_text + " Критическая ошибка, отмена...", parse_mode="HTML")
+        managment_msg = await message.edit_text(message_text + " Критическая ошибка, отмена...")
         raise
     else:
-        managment_msg = await message.edit_text(message_text + " Готово ✅", parse_mode="HTML")
+        managment_msg = await message.edit_text(message_text + " Готово ✅")
     return managment_msg
     
 async def match_audio_query(message, input_file, fingerprint_db) -> types.Message:
-    message_text = message.html_text + "\n\nИщем аудио хэши в базе данных..."
-    await message.edit_text(message_text + " Выполняем...", parse_mode="HTML")
+    message_text = message.text + "\n\nИщем аудио хэши в базе данных..."
+    await message.edit_text(message_text + " Выполняем...")
     try:
         if config.audfprint_mode == '0':
             cmd = ['python3', 'library/audfprint-master/audfprint.py', 'match', '-d', fingerprint_db, input_file, '-n', '120', '-D', '2000', '-X', '-F', '18']
@@ -162,15 +161,15 @@ async def match_audio_query(message, input_file, fingerprint_db) -> types.Messag
         assert os.path.exists(fingerprint_db)
         assert proc.returncode == 0
     except Exception as ex:
-        managment_msg = await message.edit_text(message_text + " Критическая ошибка, отмена...", parse_mode="HTML")
+        managment_msg = await message.edit_text(message_text + " Критическая ошибка, отмена...")
         raise
     else:
-        managment_msg = await message.edit_text(message_text + f" Готово ✅\n\nРезультат:\n<code>{stdout.decode()}</code>\n", parse_mode="HTML")
+        managment_msg = await message.edit_text(message_text + f" Готово ✅\n\nРезультат:\n<code>{stdout.decode()}</code>\n")
     return managment_msg
 
 async def delete_audio_hashes(message, fingerprint_db, sample_name) -> types.Message:
-    message_text = message.html_text + "\n\nУдаляем аудио хэши..."
-    await message.edit_text(message_text + " Выполняем...", parse_mode="HTML")
+    message_text = message.text + "\n\nУдаляем аудио хэши..."
+    await message.edit_text(message_text + " Выполняем...")
     try:
         cmd = ['python3', 'library/audfprint-master/audfprint.py', 'remove', '-d', fingerprint_db, sample_name, '-H', '2']
         proc = await asyncio.create_subprocess_exec(*cmd, stdout=asyncio.subprocess.PIPE,stderr=asyncio.subprocess.PIPE)
@@ -181,10 +180,10 @@ async def delete_audio_hashes(message, fingerprint_db, sample_name) -> types.Mes
         assert os.path.exists(fingerprint_db)
         assert proc.returncode == 0
     except Exception as ex:
-       managment_msg = await message.edit_text(message_text + " Критическая ошибка, отмена...", parse_mode="HTML")
+       managment_msg = await message.edit_text(message_text + " Критическая ошибка, отмена...")
        raise
     else:
-        managment_msg = await message.edit_text(message_text + " Готово ✅", parse_mode="HTML")
+        managment_msg = await message.edit_text(message_text + " Готово ✅")
     return managment_msg
 
 @dp.message_handler(commands=['start'], state='*')
@@ -200,28 +199,6 @@ async def start_cmd_message(message: types.Message):
     else:
         await main_menu_message(message, 'reply')
 
-@dp.callback_query_handler(lambda c: c.data == 'bot_settings_message')
-async def bot_settings_message(callback_query: types.CallbackQuery):
-    keyboard_markup = types.InlineKeyboardMarkup()
-    back_btn = types.InlineKeyboardButton('«      ', callback_data= 'welcome_message')
-    lang_btn = types.InlineKeyboardButton(f'Язык интерфейса : {db.get_user_lang(callback_query.message.chat.id)}', callback_data= 'edit_lang')
-    keyboard_markup.row(lang_btn)
-    keyboard_markup.row(back_btn)
-    await callback_query.message.edit_text("Настройки бота:", reply_markup=keyboard_markup)
-    await bot.answer_callback_query(callback_query.id)
-
-@dp.callback_query_handler(lambda c: c.data == 'about_bot_message')
-async def about_bot_message(callback_query: types.CallbackQuery):
-    keyboard_markup = types.InlineKeyboardMarkup()
-    back_btn = types.InlineKeyboardButton('«      ', callback_data= 'welcome_message')
-    keyboard_markup.row(back_btn)
-    await callback_query.message.edit_text(
-        "LenDejavuBot - бот предназначенный для решения музыкальных викторин. Бот специально разработан для Павлодарского музыкального колледжа\n\n"
-        "Разработчик ботка : @Zhymabek_Roman\n"
-        "Тех.поддержка : @Zhymabek_Roman", 
-        reply_markup=keyboard_markup)
-    await bot.answer_callback_query(callback_query.id)
-
 async def main_menu_message(message: types.Message, messaging_type):
     keyboard_markup = types.InlineKeyboardMarkup()
     folder_list_btns = types.InlineKeyboardButton('Папки 📂', callback_data= 'folders_list')
@@ -235,6 +212,20 @@ async def main_menu_message(message: types.Message, messaging_type):
         await message.edit_text("Главное меню : ", reply_markup=keyboard_markup)
     elif messaging_type == 'reply':
         await message.reply("Главное меню : ", reply_markup=keyboard_markup)
+
+@dp.callback_query_handler(lambda c: c.data == 'bot_settings_message')
+async def bot_settings_message(callback_query: types.CallbackQuery):
+    keyboard_markup = types.InlineKeyboardMarkup()
+    back_btn = types.InlineKeyboardButton('«      ', callback_data= 'welcome_message')
+    lang_btn = types.InlineKeyboardButton(f'Язык интерфейса : {db.get_user_lang(callback_query.message.chat.id)}', callback_data= 'edit_lang')
+    keyboard_markup.row(lang_btn)
+    keyboard_markup.row(back_btn)
+    await callback_query.message.edit_text("Настройки бота:", reply_markup=keyboard_markup)
+    await bot.answer_callback_query(callback_query.id)
+
+@dp.callback_query_handler(lambda c: c.data == 'about_bot_message')
+async def about_bot_message(call: types.CallbackQuery):
+    await process_help_command_1(call.message, "edit")
 
 async def language_settings_message(message: types.Message, messaging_type= 'start'):
     keyboard = types.InlineKeyboardMarkup()
@@ -258,7 +249,7 @@ async def set_language_message(call: types.CallbackQuery, callback_data: dict):
         
     db.set_user_lang(call.message.chat.id, selected_language_code)
     await call.answer(f"🎚Настройки : Выбран {selected_language_code} язык!")
-    await main_menu_message(call.message, 'edit')
+    await process_help_command_1(call.message, "edit")
 
 async def folder_list_menu_message(message: types.Message, messaging_type):
     unset_selected_folder_name(message.chat.id)
@@ -300,7 +291,7 @@ async def create_folder_step_2_message(message: types.Message, state: FSMContext
         await message.reply('Название папки превышает 20 символов', reply_markup=keyboard_markup)
         return
     # Ищем название данной папки в БД 
-    if [x.lower() for x in db.select_user_folders_list(message.chat.id)] == user_data['folder_name'].lower():
+    if user_data['folder_name'].lower() in [x.lower() for x in db.select_user_folders_list(message.chat.id)]:
         keyboard_markup = types.InlineKeyboardMarkup()
         back_btn = types.InlineKeyboardButton('«      ', callback_data = 'folders_list')
         keyboard_markup.row(back_btn)
@@ -322,15 +313,48 @@ async def create_folder_step_2_message(message: types.Message, state: FSMContext
     os.makedirs(path_list.processed_audio_samples())
     os.makedirs(path_list.tmp_query_audio())
     os.makedirs(path_list.processed_query_audio())
-    try:
-        os.makedirs(path_list.fingerprint_db_dir_path())
-    except:
-        pass
-    
+    os.makedirs(path_list.fingerprint_db_dir_path(), exist_ok=True)
+
     db.create_folder(message.chat.id, user_data['folder_name'])
     
     await message.reply(f'Папка "{user_data["folder_name"]}" создана!')
     await folder_list_menu_message(message, 'start') 
+
+@dp.callback_query_handler(remove_folder_cb.filter(), state='*')
+async def delete_folder_step_1_message(call: types.CallbackQuery, callback_data: dict):
+    folder_name = callback_data['folder_name']
+    
+    keyboard_markup = types.InlineKeyboardMarkup()
+    delete_btn = types.InlineKeyboardButton('Да!', callback_data=remove_folder_process_cb.new(folder_name))
+    back_btn = types.InlineKeyboardButton('«      ', callback_data=manage_folder_cb.new(folder_name))
+    keyboard_markup.row(delete_btn)
+    keyboard_markup.row(back_btn)
+    await call.message.edit_text(
+                    f'Вы действительно хотите удалить папку "{folder_name}"?\n'
+                    f'Также будут удалены ВСЕ аудио сэмплы, которые находятся в папке "{folder_name}".\n\n'
+                    "<b>ВНИМАНИЕ! ЭТО ДЕЙСТВИЕ НЕЛЬЗЯ ОТМЕНИТЬ !!!</b>",
+                    parse_mode="HTML",
+                    reply_markup=keyboard_markup)
+    await call.answer()
+
+@dp.callback_query_handler(remove_folder_process_cb.filter(), state='*')
+async def delete_folder_step_2_message(call: types.CallbackQuery, callback_data: dict):
+    folder_name = callback_data['folder_name']
+    path_list = path(call.message.chat.id, folder_name)
+    # Delete all folders
+    shutil.rmtree(path_list.tmp_audio_samples())
+    shutil.rmtree(path_list.processed_audio_samples())
+    shutil.rmtree(path_list.tmp_query_audio())
+    shutil.rmtree(path_list.processed_query_audio())
+    # Delete audiofingerprint database
+    if os.path.exists(path_list.fingerprint_db()):
+        os.remove(path_list.fingerprint_db())
+
+    db.unregister_all_audio_sample(call.message.chat.id, folder_name)
+    db.delete_folder(call.message.chat.id, folder_name)
+    await call.message.edit_text(f'Папка "{folder_name}" удалена!')
+    await call.answer()
+    await folder_list_menu_message(call.message, 'start')
 
 @dp.callback_query_handler(manage_folder_cb.filter(), state='*')
 async def manage_folder_menu_message(call: types.CallbackQuery, callback_data: dict):
@@ -362,44 +386,6 @@ async def manage_folder_menu_message(call: types.CallbackQuery, callback_data: d
                                "Ваши действия - ", reply_markup=keyboard_markup)
     await call.answer()
 
-@dp.callback_query_handler(remove_folder_cb.filter(), state='*')
-async def delete_folder_step_1_message(call: types.CallbackQuery, callback_data: dict):
-    folder_name = callback_data['folder_name']
-    
-    keyboard_markup = types.InlineKeyboardMarkup()
-    delete_btn = types.InlineKeyboardButton('Да!', callback_data=remove_folder_process_cb.new(folder_name))
-    back_btn = types.InlineKeyboardButton('«      ', callback_data=manage_folder_cb.new(folder_name))
-    keyboard_markup.row(delete_btn)
-    keyboard_markup.row(back_btn)
-    await call.message.edit_text(
-                    f'Вы действительно хотите удалить папку "{folder_name}"?\n'
-                    f'Также будут удалены ВСЕ аудио сэмплы, которые находятся в папке "{folder_name}".\n\n'
-                    "<b>ВНИМАНИЕ! ЭТО ДЕЙСТВИЕ НЕЛЬЗЯ ОТМЕНИТЬ !!!</b>",
-                    parse_mode="HTML",
-                    reply_markup=keyboard_markup)
-    await call.answer()
-
-@dp.callback_query_handler(remove_folder_process_cb.filter(), state='*')
-async def delete_folder_step_2_message(call: types.CallbackQuery, callback_data: dict):
-    folder_name = callback_data['folder_name']
-    path_list = path(call.message.chat.id)
-    ### Todo !
-    try:
-        # Delete all folders
-        shutil.rmtree(path_list.tmp_audio_samples())
-        shutil.rmtree(path_list.processed_audio_samples())
-        shutil.rmtree(path_list.tmp_query_audio())
-        shutil.rmtree(path_list.processed_query_audio())
-        # Delete audiofingerprint database
-        os.remove(path_list.fingerprint_db())
-    except:
-        pass
-    finally:
-        db.unregister_all_audio_sample(call.message.chat.id, folder_name)
-        db.delete_folder(call.message.chat.id, folder_name)
-    await call.message.edit_text(f'Папка "{folder_name}" удалена!')
-    await call.answer()
-    await folder_list_menu_message(call.message, 'start')
 
 @dp.callback_query_handler(upload_audio_sample_cb.filter(), state='*')
 async def upload_audio_sample_message(call: types.CallbackQuery, callback_data: dict):
@@ -414,7 +400,7 @@ async def upload_audio_sample_message(call: types.CallbackQuery, callback_data: 
     keyboard_markup.row(back_btn)
     await call.message.edit_text(
                     f'Вы работаете с папкой "{folder_name}", в режиме загрузки аудио сэмплов\n\n'
-                    'Поддерживаемые форматы - mp3, wav, wma, ogg, flac, aac;\n'
+                    'Поддерживаемые форматы - mp3, wav, wma, ogg, flac, aac, opus;\n'
                     'Максимальный размер файла - 20мб. Это максимальный размер для Telegram ботов;\n'
                     'Файлы нужно загружать по одному !\n\n'
                     'Жду от тебя аудио сэмпл',
@@ -438,13 +424,14 @@ async def upload_audio_sample_step_1_message(message: types.Message, state: FSMC
    
         user_data['audio_sample_file_name'] = os.path.splitext(name_file)[0]
         user_data['audio_sample_file_extensions'] = os.path.splitext(name_file)[1]
-        
-#    if int(user_data["audio_sample_file_info"].file_size) >= 20871520:
-#        keyboard_markup = types.InlineKeyboardMarkup()
-#        back_btn = types.InlineKeyboardButton('«      ', callback_data= get_selected_folder_name(message.chat.id))
-#        keyboard_markup.row(back_btn)
-#        await message.reply('Размер файла превышает 20 mb. Отправьте другой файл', reply_markup=keyboard_markup)
-#        return
+    
+    # Проверяем размер файла
+    if int(user_data["audio_sample_file_info"].file_size) >= 20871520:
+        keyboard_markup = types.InlineKeyboardMarkup()
+        back_btn = types.InlineKeyboardButton('«      ', callback_data=manage_folder_cb.new(get_selected_folder_name(message.chat.id)))
+        keyboard_markup.row(back_btn)
+        await message.reply('Размер файла превышает 20 mb. Отправьте другой файл', reply_markup=keyboard_markup)
+        return
     
     ### Проверка на загруженность файла в текущей папки через db
     file_unique_id = user_data["audio_sample_file_info"].file_unique_id
@@ -457,7 +444,7 @@ async def upload_audio_sample_step_1_message(message: types.Message, state: FSMC
         return
      
     # Проверяем расширение файла
-    if user_data["audio_sample_file_extensions"].lower() in ('.aac','.wav', '.mp3', '.wma', '.ogg', '.flac'):
+    if user_data["audio_sample_file_extensions"].lower() in ('.aac','.wav', '.mp3', '.wma', '.ogg', '.flac', '.opus'):
         await Upload_Sample.step_2.set()
         
         keyboard_markup = types.InlineKeyboardMarkup()
@@ -543,11 +530,8 @@ async def upload_audio_sample_step_2_message(message: types.Message, state: FSMC
         keyboard_markup.row(upload_sample_btn)
         await message.reply(f'Аудио сэмпл с названием "{user_data["audio_sample_name"]}" успешно сохранён', reply_markup=keyboard_markup)
     finally:
-        try:
-            os.remove(path_list.tmp_audio_samples(audio_sample_full_name))
-            os.remove(path_list.processed_audio_samples(audio_sample_name + ".mp3"))
-        except:
-            pass
+        os.remove(path_list.tmp_audio_samples(audio_sample_full_name))
+        os.remove(path_list.processed_audio_samples(audio_sample_name + ".mp3"))
 
 @dp.callback_query_handler(remove_audio_sample_cb.filter(), state='*')
 async def remove_audio_sample_message(call: types.CallbackQuery, callback_data: dict, state: FSMContext):
@@ -644,7 +628,7 @@ async def recognize_query_step_1_message(message: types.Message, state: FSMConte
         name_file = message.audio.file_name ### New in Bot API 5.0
         query_audio_file_extensions = os.path.splitext(name_file)[1]
     
-    if query_audio_file_extensions.lower() not in ('.aac','.wav', '.mp3', '.wma', '.ogg', '.flac'):
+    if query_audio_file_extensions.lower() not in ('.aac','.wav', '.mp3', '.wma', '.ogg', '.flac', '.opus'):
         keyboard_markup = types.InlineKeyboardMarkup()
         back_btn = types.InlineKeyboardButton('«      ', callback_data=manage_folder_cb.new(get_selected_folder_name(message.chat.id)))
         keyboard_markup.row(back_btn)
@@ -675,16 +659,86 @@ async def recognize_query_step_1_message(message: types.Message, state: FSMConte
         keyboard_markup.row(upload_sample_btn)
         await message.reply('Аудио запись распознана', reply_markup=keyboard_markup)
     finally:
-        try:
-            os.remove(path_list.tmp_query_audio(query_audio_full_name))
-            os.remove(path_list.processed_query_audio(query_audio_name + ".mp3"))
-        except:
-            pass
+        os.remove(path_list.tmp_query_audio(query_audio_full_name))
+        os.remove(path_list.processed_query_audio(query_audio_name + ".mp3"))
         
 @dp.message_handler(commands=['help'], state='*')
-async def process_help_command(message: types.Message):
-    pass
-    
+async def process_help_command_1(message: types.Message, messaging_type = "start"):
+    message_text = """<b>Введение</b>
+
+<code>LenDejavuBot</code> - бот помощник для распознавания музыкальных викторин. Бот специально разработан для Павлодарского музыкального колледжа. Размер загружаемых файлов должен быть до 20 МБ, этот лимит установлен Телеграмом для ботов, я ничего не могу с этим поделать.
+
+В музыкальных заведениях, кроме теории и практики, и изучении композиторов, дополнительно нужно знать наизусть все известные произведение композитора, а также как они звучат. И чтобы проверить в каком состоянии учащийся знают наизусть произведения, учителя периодически устраивают музыкальные викторины. Для этого учителя заранее до викторины дают учащимся аудио записи которые будут на викторине. В принципе, выучить 5-10 произведении не составляет труда. Но бывает что этот список достигает до 40 (!) произведении, что не так просто, да и нужно знать не просто название произведении, но и композитора, какая тональность и конкретно откуда (какое действие, часть или акт). Это еще начало что я озвучил, некоторые учителя например не сначала ставят запись, а допустим с середины. Тут Shazam, со своей базой произведении не поможет, нужно создавать свою гибкую базу с произведениями.
+
+<b>Принцип работ бота:</b>
+1&gt; Вы загружаете мне в папку аудио запись который дал преподаватель для подготовки к викторине 
+2&gt; Во время викторины вы переходите в папку, включаете Режим Викторины, и отправляете аудио сообщение с викториной и я вам выдаю название записи
+
+<i>Пройдите все страницы, чтобы узнать больше обо мне и знать, как использовать меня.</i>"""
+
+    keyboard_markup = types.InlineKeyboardMarkup()
+    next_btn = types.InlineKeyboardButton('» Далее', callback_data="process_help_command_2")
+    keyboard_markup.row(next_btn)
+    if messaging_type == "start":
+        await message.reply(message_text, reply_markup=keyboard_markup, parse_mode="HTML")
+    elif messaging_type == "edit":
+        await message.edit_text(message_text, reply_markup=keyboard_markup, parse_mode="HTML")
+
+async def process_help_command_2(message: types.Message):
+    message_text = """<b>Использование</b>
+
+<i>Для того чтобы отобразить главное меню бота, нужно ввести команду </i><i>/start</i>
+
+<b># Загрузка аудио записей
+</b>0&gt; Откройте главное меню, если это меню не открыта
+1&gt; Перейдите в меню "Папки" и создайте новую папку
+2&gt; Придумайте понятное для Вас название папке и отправьте мне
+3&gt; Откройте только что созданную папку, перейдите в меню "Загрузить аудио сэмплы" и отправьте файлом мне аудио запись, которую дал преподаватель для подготовке к викторине
+<i>Внимание! Файлы нужно загружать по одному, а также размер не должен превышать 20 мб</i>
+4&gt; Укажите название аудио записи по Вашему усмотрению, это название будет отображаться во время распознавания викторины
+5&gt; Готово!
+
+<b># Распознавание викторины</b>
+0&gt; Откройте главное меню, если это меню не открыта
+1&gt; Перейдите в меню "Папки"
+2&gt; Откройте только что созданную папку, перейдите в меню "Режим Викторины" и отправьте файлом или голосовым сообщением отрывок из музыкальной викторины, и ожидайте пока не выйдет название распознанной викторины
+3&gt; Готово!"""
+
+    keyboard_markup = types.InlineKeyboardMarkup()
+    back_btn = types.InlineKeyboardButton('« Назад', callback_data="process_help_command_1")
+    next_btn = types.InlineKeyboardButton('» Далее', callback_data="process_help_command_3")
+    keyboard_markup.row(back_btn, next_btn)
+    await message.edit_text(message_text, reply_markup=keyboard_markup, parse_mode="HTML")
+
+async def process_help_command_3(message: types.Message):
+    message_text = """<b>Поддерживаемые форматы аудио записей:</b>
+&gt;*.ogg
+&gt;*.mp3
+&gt;*.acc
+&gt;*.wav
+&gt;*.wma
+&gt;*.flac
+&gt;*.opus
+
+<i>Нету формата в котором у тебя аудио запись? Не проблема, просто напиши разработчику об этом: </i><i>@Zhymabek_Roman</i>"""
+
+    keyboard_markup = types.InlineKeyboardMarkup()
+    back_btn = types.InlineKeyboardButton('« Назад', callback_data="process_help_command_2")
+    next_btn = types.InlineKeyboardButton('» Далее', callback_data="process_help_command_4")
+    keyboard_markup.row(back_btn, next_btn)
+    await message.edit_text(message_text, reply_markup=keyboard_markup, parse_mode="HTML")
+
+async def process_help_command_4(message: types.Message):
+    message_text = """<b>Дополнительная информация</b>
+
+<i>&gt; В случае если у вас возникнут вопросы по боту, или есть пожелание или же хотелки, вы можете написать разработчику об этом: </i><i>@Zhymabek_Roman</i>"""
+
+    keyboard_markup = types.InlineKeyboardMarkup()
+    back_btn = types.InlineKeyboardButton('« Назад', callback_data="process_help_command_3")
+    next_btn = types.InlineKeyboardButton('Готово!', callback_data="welcome_message")
+    keyboard_markup.row(back_btn, next_btn)
+    await message.edit_text(message_text, reply_markup=keyboard_markup, parse_mode="HTML")
+
 @dp.errors_handler(exception=BotBlocked)
 async def error_bot_blocked(update: types.Update, exception: BotBlocked):
     logging.warning(f"Меня заблокировал пользователь!\nСообщение: {update}\nОшибка: {exception}")
@@ -696,7 +750,7 @@ async def message_not_modified_handler(update: types.Update, exception: BotBlock
 
 @dp.message_handler(content_types=types.ContentType.ANY, state='*')
 async def unknown_message(msg: types.Message):
-    await msg.reply('Я не знаю, что с этим делать\nЯ просто напомню, что есть команда /help', parse_mode="HTML")
+    await msg.reply('Я не знаю, что с этим делать\nЯ просто напомню, что есть команда /help')
 
 @dp.callback_query_handler(state='*')
 async def callback_handler(query: types.CallbackQuery, state):
@@ -712,20 +766,23 @@ async def callback_handler(query: types.CallbackQuery, state):
         await query.answer()
         await folder_list_menu_message(query.message, 'edit')
     if answer_data == 'create_new_folder':
-        if int(db.user_folders_count(query.message.chat.id)) > 10:
+        if int(db.user_folders_count(query.message.chat.id)) >= 10:
             await query.answer('Список папок превышает 10 папок', True)
             return
         await query.answer()
         await create_folder_step_1_message(query.message)
-
-def async_wrap(func):
-    @wraps(func)
-    async def run(*args, loop=None, executor=None, **kwargs):
-        if loop is None:
-            loop = asyncio.get_event_loop()
-        pfunc = partial(func, *args, **kwargs)
-        return await loop.run_in_executor(executor, pfunc)
-    return run 
+    if answer_data == 'process_help_command_1':
+        await query.answer()
+        await process_help_command_1(query.message, "edit")
+    if answer_data == 'process_help_command_2':
+        await query.answer()
+        await process_help_command_2(query.message)
+    if answer_data == 'process_help_command_3':
+        await query.answer()
+        await process_help_command_3(query.message)
+    if answer_data == 'process_help_command_4':
+        await query.answer()
+        await process_help_command_4(query.message)
 
 def on_shutdown(dispatcher):
     global curent_folder_name

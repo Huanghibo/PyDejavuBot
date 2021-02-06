@@ -56,8 +56,10 @@ class SQLighter:
     def get_folder_id_by_folder_name(self, user_id, folder_name) -> str:
         """Получаем ID папки по названию папки"""
         with self.connection:
-            folder_id = self.cursor.execute("SELECT folder_id FROM folders Where folder_name= :1 AND user_id= :0", {'0': user_id, '1': folder_name}).fetchone()[0]
-            return folder_id
+            return self.cursor.execute(
+                "SELECT folder_id FROM folders Where folder_name= :1 AND user_id= :0",
+                {'0': user_id, '1': folder_name},
+            ).fetchone()[0]
             
     def create_empety_user_data(self, user_id, user_name) -> None:
         """Регистрирует ID юзера без указания языка"""

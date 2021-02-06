@@ -360,7 +360,7 @@ async def delete_folder_step_2_message(call: types.CallbackQuery, callback_data:
 async def manage_folder_menu_message(call: types.CallbackQuery, callback_data: dict):
     folder_name = callback_data['folder_name']
     set_selected_folder_name(call.message.chat.id, folder_name)
-    
+
     keyboard_markup = types.InlineKeyboardMarkup()
     upload_audio_samples_btn = types.InlineKeyboardButton('Загрузить аудио сэмплы', callback_data=upload_audio_sample_cb.new(folder_name))
     keyboard_markup.row(upload_audio_samples_btn)
@@ -372,13 +372,19 @@ async def manage_folder_menu_message(call: types.CallbackQuery, callback_data: d
     keyboard_markup.row(delete_btn)
     back_btn = types.InlineKeyboardButton('«      ', callback_data= 'folders_list')
     keyboard_markup.row(back_btn)
-    
-    samples_name = ""
-    for i, b in enumerate(db.select_user_audio_samples_list(call.message.chat.id, folder_name), 1):
-        samples_name += str(f"{i}) {b}\n")
-        
+
+    samples_name = "".join(
+        str(f"{i}) {b}\n")
+        for i, b in enumerate(
+            db.select_user_audio_samples_list(
+                call.message.chat.id, folder_name
+            ),
+            1,
+        )
+    )
+
     samples_count = len(db.select_user_audio_samples_list(call.message.chat.id, folder_name))
-               
+
     await call.message.edit_text(
                                f"Вы работаете с папкой : {folder_name}\n\n"
                                f"Количество аудио сэмплов: {samples_count}\n"

@@ -9,7 +9,9 @@
 In musical institutions, in addition to theory and practice, and the study of composers, you additionally need to know by heart all the famous works of the composer, as well as how they sound. And to check in what condition the student knows the works by heart, teachers periodically arrange music quizzes. For this, teachers pre-quiz give students audio recordings that will be on the quiz. In principle, learning 5-10 works is not difficult. But it happens that this list reaches up to 40 (!) Works, which is not so simple, and you need to know not only the name of the work, but also the composer, what tonality and exactly where (what action, part or act). This is still the beginning that I voiced, some teachers, for example, do not first put a record, but let's say from the middle. Here Shazam, with its base work will not help, you need to create your own flexible base with works.
 
 Bot operation principle:
+
 1 > You upload to bot the audio recording that the teacher gave you to prepare for the quiz
+
 2 > During a quiz, you go to a bot, turn on Quiz Mode, and send an audio message with a quiz and bot give you the title of the recording
 
 Shazam is not particularly useful here, since it sometimes does not correctly recognize the audio recording itself. If even correctly recognized, then the information of the recognized record is not enough for the teacher.

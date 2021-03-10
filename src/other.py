@@ -38,26 +38,25 @@ class path:
         return f'{config.USER_DATA_PATH}/query/tmp/{self.user_id}/{self.user_folder}/{file_name}'
     def processed_query_audio(self, file_name = "") -> str:
         return f'{config.USER_DATA_PATH}/query/processed/{self.user_id}/{self.user_folder}/{file_name}'
-    
+
     def fingerprint_db(self) -> str:
         return f'{config.USER_DATA_PATH}/audio_sample/fingerprint_db/{self.user_id}/{self.user_folder}.fpdb'
     def fingerprint_db_dir_path(self) -> str:
         return f'{config.USER_DATA_PATH}/audio_sample/fingerprint_db/{self.user_id}/'
 
-# Не помню откуда взял этот код =)
 def check_string_for_except_chars(string: str) -> str:
     """Поверяет строку на недопустимые символы, в случае если будут то возвращяет словарь с присутсвующими запрещенными символами"""
     exception_chars = '\\\/\|<>\?:"\*'
     find_exceptions = re.compile('([{}])'.format(exception_chars))
     return find_exceptions.findall(string)
-    
+
 def base64_encode(message: str) -> str:
     """Зашифровывает строку в base64"""
     message_bytes = message.encode('ascii')
     base64_bytes = base64.b64encode(message_bytes)
     base64_message = base64_bytes.decode('ascii')
     return base64_message
-    
+
 def base64_decode(base64_message: str) -> str:
     """Расшифровывает base64 строку"""
     base64_bytes = base64_message.encode('ascii')
@@ -72,4 +71,4 @@ def async_wrap(func):
             loop = asyncio.get_event_loop()
         pfunc = partial(func, *args, **kwargs)
         return await loop.run_in_executor(executor, pfunc)
-    return run 
+    return run

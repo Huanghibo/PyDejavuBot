@@ -1,4 +1,5 @@
 import sqlite3
+import pickle
 import os
 import sys
 from other import base64_encode
@@ -44,5 +45,8 @@ with open(f"{USER_DATA_PATH}/config.py", "w") as file:
     file.write(f"FSM_FILE_STORAGE = '{USER_DATA_PATH}/FSM_state_storage.json'\n")
     file.write("# Declare users current folder storage\n")
     file.write(f"VARIABLES_FILE_STORAGE = '{USER_DATA_PATH}/variables_storage.pkl'\n")
-    
+
+with open(f"{USER_DATA_PATH}/variables_storage.pkl", 'wb') as file:
+    pickle.dump("{}", file)
+
 print("Done!")

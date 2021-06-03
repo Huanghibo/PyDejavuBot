@@ -13,15 +13,17 @@ import asyncio
 from dataclasses import dataclass
 from functools import wraps, partial
 try:
-    from user_data import config
+    from bot.user_data import config
 except ImportError:
-    pass # Fixme
+    pass  # Fixme
+
 
 # https://pynative.com/python-generate-random-string/
 def generate_random_string(length: int) -> str:
     """Returns random generated string with a certain quantity letters"""
     letters = string.ascii_lowercase
     return ''.join(random.choice(letters) for i in range(length))
+
 
 @dataclass
 class path:
@@ -44,11 +46,13 @@ class path:
     def fingerprint_db_dir_path(self) -> str:
         return f'{config.USER_DATA_PATH}/audio_sample/fingerprint_db/{self.user_id}/'
 
+
 def check_string_for_except_chars(string: str) -> str:
     """Поверяет строку на недопустимые символы, в случае если будут то возвращяет словарь с присутсвующими запрещенными символами"""
     exception_chars = '\\\/\|<>\?:"\*'
     find_exceptions = re.compile('([{}])'.format(exception_chars))
     return find_exceptions.findall(string)
+
 
 def base64_encode(message: str) -> str:
     """Зашифровывает строку в base64"""
@@ -57,12 +61,14 @@ def base64_encode(message: str) -> str:
     base64_message = base64_bytes.decode('ascii')
     return base64_message
 
+
 def base64_decode(base64_message: str) -> str:
     """Расшифровывает base64 строку"""
     base64_bytes = base64_message.encode('ascii')
     message_bytes = base64.b64decode(base64_bytes)
     message = message_bytes.decode('ascii')
     return message
+
 
 def async_wrap(func):
     @wraps(func)

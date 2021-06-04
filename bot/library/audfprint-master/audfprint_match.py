@@ -25,7 +25,10 @@ import audfprint_analyze
 import audio_read
 import stft
 
+import sys
 import ntpath
+
+sys.stdout.reconfigure(encoding='utf-8')
 
 def process_info():
     rss = usrtime = 0
@@ -393,7 +396,7 @@ class Matcher(object):
         if len(rslts) == 0:
             # No matches returned at all
             nhashaligned = 0
-            print("Это божественная музыка! Возможно, именно поэтому я не могу найти её. 😇")
+            sys.stdout.write("Это божественная музыка! Возможно, именно поэтому я не могу найти её. 😇")
             if self.verbose:
                 msgrslt.append("NOMATCH " + qrymsg)
             else:
@@ -405,7 +408,7 @@ class Matcher(object):
                 query_audio_full_path = ht.names[tophitid]
                 query_audio_basename = ntpath.basename(query_audio_full_path)
                 filename, file_extension = os.path.splitext(query_audio_basename)
-                print(filename)
+                sys.stdout.write(filename)
                 if self.verbose:
                     if self.find_time_range:
                         msg = ("Matched {:6.1f} s starting at {:6.1f} s in {:s}"

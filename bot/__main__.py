@@ -43,6 +43,9 @@ dp = Dispatcher(bot, storage=memory_storage)
 # Initialize connection with db
 db = SQLighter(config.DATABASE_PATH)
 
+loop = asyncio.get_event_loop()
+myQueue = asyncio.Queue(loop=loop, maxsize=1)
+
 # Initialize callback data factory
 manage_folder_cb = CallbackData("manage_folder_menu", "folder_name")
 remove_folder_cb = CallbackData("remove_folder_message", "folder_name")
@@ -109,9 +112,9 @@ async def register_audio_hashes(message, input_file, fingerprint_db) -> types.Me
             db_hashes_add_method = 'add'
 
         if config.audfprint_mode == '0':
-            cmd = ['python3', 'library/audfprint-master/audfprint.py', db_hashes_add_method, '-d', fingerprint_db, input_file, '-n', '120', '-X', '-F', '18']
+            cmd = ['python', 'bot/library/audfprint-master/audfprint.py', db_hashes_add_method, '-d', fingerprint_db, input_file, '-n', '120', '-X', '-F', '18']
         elif config.audfprint_mode == '1':
-            cmd = ['python3', 'library/audfprint-master/audfprint.py', db_hashes_add_method, '-d', fingerprint_db, input_file]
+            cmd = ['python', 'bot/library/audfprint-master/audfprint.py', db_hashes_add_method, '-d', fingerprint_db, input_file]
 
         proc = await asyncio.create_subprocess_exec(*cmd, stdout=asyncio.subprocess.PIPE,stderr=asyncio.subprocess.PIPE)
         stdout, stderr = await proc.communicate()
@@ -132,9 +135,10 @@ async def match_audio_query(message, input_file, fingerprint_db) -> types.Messag
     await message.edit_text(message_text + " Выполняем...")
     try:
         if config.audfprint_mode == '0':
-            cmd = ['python3', 'library/audfprint-master/audfprint.py', 'match', '-d', fingerprint_db, input_file, '-n', '120', '-D', '2000', '-X', '-F', '18']
+            cmd = ['python', 'bot/library/audfprint-master/audfprint.py', 'match', '-d', fingerprint_db, input_file, '-n', '120', '-D', '2000', '-X', '-F', '18']
         elif config.audfprint_mode == '1':
-            cmd = ['python3', 'library/audfprint-master/audfprint.py', 'match', '-d', fingerprint_db, input_file]
+            cmd = ['python', 'bot/library/audfprint-master/audfprint.py', 'match', '-d', fingerprint_db, input_file]
+        print(" ".join(cmd))
         proc = await asyncio.create_subprocess_exec(*cmd, stdout=asyncio.subprocess.PIPE,stderr=asyncio.subprocess.PIPE)
         stdout, stderr = await proc.communicate()
         logging.info(f'[{cmd!r} exited with {proc.returncode}]')
@@ -143,6 +147,7 @@ async def match_audio_query(message, input_file, fingerprint_db) -> types.Messag
         assert os.path.exists(fingerprint_db)
         assert proc.returncode == 0
     except Exception as ex:
+        print(ex)
         managment_msg = await message.edit_text(message_text + " Критическая ошибка, отмена...")
         raise
     else:
@@ -153,7 +158,7 @@ async def delete_audio_hashes(message, fingerprint_db, sample_name) -> types.Mes
     message_text = message.text + "\n\nУдаляем аудио хэши..."
     await message.edit_text(message_text + " Выполняем...")
     try:
-        cmd = ['python3', 'library/audfprint-master/audfprint.py', 'remove', '-d', fingerprint_db, sample_name, '-H', '2']
+        cmd = ['python', 'bot/library/audfprint-master/audfprint.py', 'remove', '-d', fingerprint_db, sample_name, '-H', '2']
         proc = await asyncio.create_subprocess_exec(*cmd, stdout=asyncio.subprocess.PIPE,stderr=asyncio.subprocess.PIPE)
         stdout, stderr = await proc.communicate()
         logging.info(f'[{cmd!r} exited with {proc.returncode}]')
@@ -396,6 +401,9 @@ async def upload_audio_sample_step_1_message(message: types.Message, state: FSMC
         await message.reply(f'В папке "{user_data["folder_name"]}" этот аудио сэмпл уже существует под названием "{db_audio_sample_unique_name[0]}"\nОтправьте другой файл', reply_markup=keyboard_markup)
         return
 
+    await state.update_data({'audio_sample_name': user_data["audio_sample_file_name"]})
+
+    """
     # Проверяем расширение файла
     if user_data["audio_sample_file_extensions"].lower() in ('.aac', '.wav', '.mp3', '.wma', '.ogg', '.flac', '.opus'):
         await Upload_Sample.step_2.set()
@@ -411,11 +419,15 @@ async def upload_audio_sample_step_1_message(message: types.Message, state: FSMC
     else:
         await message.reply(f'Мы "{user_data["audio_sample_file_extensions"]}" формат не принемаем, пришлите в другом формате\n\n', reply_markup=keyboard_markup)
         return
+    """
+
+    await upload_audio_sample_step_2_message(message, state)
+
 
 @dp.message_handler(state=Upload_Sample.step_2, content_types=types.ContentTypes.TEXT)
 async def upload_audio_sample_step_2_message(message: types.Message, state: FSMContext):
-    async with state.proxy() as user_data:
-        user_data['audio_sample_name'] = message.text.replace('\n', ' ')
+    # async with state.proxy() as user_data:
+    #     user_data['audio_sample_name'] = message.text.replace('\n', ' ')
 
     user_data = await state.get_data()
 
@@ -429,50 +441,69 @@ async def upload_audio_sample_step_2_message(message: types.Message, state: FSMC
     keyboard_markup.row(back_btn)
 
     # Проверяем количество символов в названии сэмпла
-    if len(user_data["audio_sample_name"]) >= 90:
-        await message.reply('Название сэмпла превышает 90 символов, введите другое имя', reply_markup=keyboard_markup)
-        return
+    # if len(user_data["audio_sample_name"]) >= 90:
+    #     await message.reply('Название сэмпла превышает 90 символов, введите другое имя', reply_markup=keyboard_markup)
+    #     return
 
     # Проверяем строку на недопустимые символы
-    if check_string_for_except_chars(user_data["audio_sample_name"]):
-        await message.reply(f'Название сэмпла "{user_data["audio_sample_name"]}" содержит недопустимые символы: {check_string_for_except_chars(audio_sample_name)}\nВведите другое имя', reply_markup=keyboard_markup)
-        return
+    # if check_string_for_except_chars(user_data["audio_sample_name"]):
+    #     await message.reply(f'Название сэмпла "{user_data["audio_sample_name"]}" содержит недопустимые символы: {check_string_for_except_chars(audio_sample_name)}\nВведите другое имя', reply_markup=keyboard_markup)
+    #     return
 
     # Проверяем, существует ли аудио сэмпл с таким же названием
-    if str(user_data["audio_sample_name"]).lower() in [x.lower() for x in db.select_user_audio_samples_list(message.chat.id, user_data["folder_name"])]:
-        await message.reply("Аудио сэмпл с таким же уже существует, введите другое имя", reply_markup=keyboard_markup)
-        return
+    # if str(user_data["audio_sample_name"]).lower() in [x.lower() for x in db.select_user_audio_samples_list(message.chat.id, user_data["folder_name"])]:
+    #     await message.reply("Аудио сэмпл с таким же уже существует, введите другое имя", reply_markup=keyboard_markup)
+    #     return
 
-    await state.finish()
+    # await state.finish()
     managment_msg = await message.reply('Задача поставлена в поток!')
+    await Upload_Sample.step_1.set()
+    await myQueue.put("1")
 
-    try:
-        # Stage 0 : download file
-        managment_msg = await download_file(managment_msg, file_id, path_list.tmp_audio_samples(audio_sample_full_name))
-        # Stage 1 : check audio files for integrity and mormalize, convert them
-        managment_msg = await audio_processing(managment_msg, path_list.tmp_audio_samples(audio_sample_full_name), path_list.processed_audio_samples(audio_sample_name + ".mp3"))
-        # Stage 2 : analyze current audio sample hashes
-        managment_msg = await register_audio_hashes(managment_msg, path_list.processed_audio_samples(audio_sample_name + ".mp3"), path_list.fingerprint_db())
-        # Stage 3 : register current audio sample hashes
-        db.register_audio_sample(message.chat.id, user_data["folder_name"], user_data["audio_sample_name"], user_data["audio_sample_file_info"].file_unique_id)
-    except Exception as ex:
-        logging.exception(ex)
+
+# async def make_queue_228(myQueue):
+    # while True:
+    if 1 != 3:
+        # message, managment_msg, user_data = await myQueue.get()
+
+        file_id = user_data["audio_sample_file_info"].file_id
+        audio_sample_name = f'{user_data["audio_sample_name"]}'
+        audio_sample_full_name = f'{user_data["audio_sample_name"]}{user_data["audio_sample_file_extensions"]}'
+        path_list = path(message.chat.id, user_data["folder_name"])
+
         keyboard_markup = types.InlineKeyboardMarkup()
-        manage_folder_menu_message_btn = types.InlineKeyboardButton('« Вернутся к текущей папке', callback_data=manage_folder_cb.new(user_data["folder_name"]))
-        upload_sample_btn = types.InlineKeyboardButton('» Попробовать еще раз загрузить сэмпл', callback_data=upload_audio_sample_cb.new(user_data["folder_name"]))
-        keyboard_markup.row(manage_folder_menu_message_btn)
-        keyboard_markup.row(upload_sample_btn)
-        await message.reply(f'Во времмя обработки аудио сэмпла с названием "{user_data["audio_sample_name"]}" возникла ошибка', reply_markup=keyboard_markup)
-    else:
-        keyboard_markup = types.InlineKeyboardMarkup()
-        manage_folder_menu_message_btn = types.InlineKeyboardButton('« Вернутся к текущей папке', callback_data=manage_folder_cb.new(user_data["folder_name"]))
-        upload_sample_btn = types.InlineKeyboardButton('» Загрузить еще один сэмпл', callback_data=upload_audio_sample_cb.new(user_data["folder_name"]))
-        keyboard_markup.row(manage_folder_menu_message_btn)
-        keyboard_markup.row(upload_sample_btn)
-        await message.reply(f'Аудио сэмпл с названием "{user_data["audio_sample_name"]}" успешно сохранён', reply_markup=keyboard_markup)
-    finally:
-        os.remove(path_list.tmp_audio_samples(audio_sample_full_name))
-        os.remove(path_list.processed_audio_samples(audio_sample_name + ".mp3"))
+        back_btn = types.InlineKeyboardButton('«      ', callback_data=manage_folder_cb.new(user_data["folder_name"]))
+        keyboard_markup.row(back_btn)
+
+        try:
+            # Stage 0 : download file
+            managment_msg = await download_file(managment_msg, file_id, path_list.tmp_audio_samples(audio_sample_full_name))
+            # Stage 1 : check audio files for integrity and mormalize, convert them
+            managment_msg = await audio_processing(managment_msg, path_list.tmp_audio_samples(audio_sample_full_name), path_list.processed_audio_samples(audio_sample_name + ".mp3"))
+            # Stage 2 : analyze current audio sample hashes
+            managment_msg = await register_audio_hashes(managment_msg, path_list.processed_audio_samples(audio_sample_name + ".mp3"), path_list.fingerprint_db())
+            # Stage 3 : register current audio sample hashes
+            db.register_audio_sample(message.chat.id, user_data["folder_name"], user_data["audio_sample_name"], user_data["audio_sample_file_info"].file_unique_id)
+        except Exception as ex:
+            logging.exception(ex)
+            keyboard_markup = types.InlineKeyboardMarkup()
+            manage_folder_menu_message_btn = types.InlineKeyboardButton('« Вернутся к текущей папке', callback_data=manage_folder_cb.new(user_data["folder_name"]))
+            upload_sample_btn = types.InlineKeyboardButton('» Попробовать еще раз загрузить сэмпл', callback_data=upload_audio_sample_cb.new(user_data["folder_name"]))
+            keyboard_markup.row(manage_folder_menu_message_btn)
+            keyboard_markup.row(upload_sample_btn)
+            await message.reply(f'Во времмя обработки аудио сэмпла с названием "{user_data["audio_sample_name"]}" возникла ошибка', reply_markup=keyboard_markup)
+        else:
+            keyboard_markup = types.InlineKeyboardMarkup()
+            manage_folder_menu_message_btn = types.InlineKeyboardButton('« Вернутся к текущей папке', callback_data=manage_folder_cb.new(user_data["folder_name"]))
+            upload_sample_btn = types.InlineKeyboardButton('» Загрузить еще один сэмпл', callback_data=upload_audio_sample_cb.new(user_data["folder_name"]))
+            keyboard_markup.row(manage_folder_menu_message_btn)
+            keyboard_markup.row(upload_sample_btn)
+            await message.reply(f'Аудио сэмпл с названием "{user_data["audio_sample_name"]}" успешно сохранён', reply_markup=keyboard_markup)
+        finally:
+            os.remove(path_list.tmp_audio_samples(audio_sample_full_name))
+            os.remove(path_list.processed_audio_samples(audio_sample_name + ".mp3"))
+
+    await myQueue.get()
 
 
 @dp.callback_query_handler(remove_audio_sample_cb.filter(), state='*')
@@ -492,7 +523,7 @@ async def remove_audio_sample_message(call: types.CallbackQuery, callback_data: 
     await call.message.answer("Выберите аудио сэмпл который хотите удалить:", reply_markup=keyboard)
     await RemoveSample.step_1.set()
     await state.update_data({"folder_name": folder_name})
-    await call.answer()
+    # await call.answer()
 
 @dp.message_handler(state=RemoveSample.step_1, content_types=types.ContentTypes.TEXT)
 async def remove_audio_sample_step_1_message(message: types.Message, state: FSMContext):
@@ -506,8 +537,8 @@ async def remove_audio_sample_step_1_message(message: types.Message, state: FSMC
     path_list = path(message.chat.id, user_data["folder_name"])
 
     keyboard_markup = types.InlineKeyboardMarkup()
-    manage_folder_menu_message_btn = types.InlineKeyboardButton('« Вернутся к текущей папке', callback_data=manage_folder_cb.new(get_selected_folder_name(message.chat.id)))
-    upload_sample_btn = types.InlineKeyboardButton('» Удалить аудио сэмпл  ', callback_data=remove_audio_sample_cb.new(get_selected_folder_name(message.chat.id)))
+    manage_folder_menu_message_btn = types.InlineKeyboardButton('« Вернутся к текущей папке', callback_data=manage_folder_cb.new(user_data["folder_name"]))
+    upload_sample_btn = types.InlineKeyboardButton('» Удалить аудио сэмпл  ', callback_data=remove_audio_sample_cb.new(user_data["folder_name"]))
     keyboard_markup.row(manage_folder_menu_message_btn)
     keyboard_markup.row(upload_sample_btn)
 
@@ -531,7 +562,7 @@ async def remove_audio_sample_step_1_message(message: types.Message, state: FSMC
 
 
 @dp.callback_query_handler(recognize_query_cb.filter(), state='*')
-async def recognize_query_message(call: types.CallbackQuery, callback_data: dict):
+async def recognize_query_message(call: types.CallbackQuery, callback_data: dict, state: FSMContext):
     folder_name = callback_data['folder_name']
 
     if len(db.select_user_audio_samples_list(call.message.chat.id, folder_name)) == 0:
@@ -600,8 +631,9 @@ async def recognize_query_step_1_message(message: types.Message, state: FSMConte
         keyboard_markup.row(upload_sample_btn)
         await message.reply('Аудио запись распознана', reply_markup=keyboard_markup)
     finally:
-        os.remove(path_list.tmp_query_audio(query_audio_full_name))
-        os.remove(path_list.processed_query_audio(query_audio_name + ".mp3"))
+        pass
+        # os.remove(path_list.tmp_query_audio(query_audio_full_name))
+        # os.remove(path_list.processed_query_audio(query_audio_name + ".mp3"))
 
 @dp.message_handler(commands=['help'], state='*')
 async def process_help_command_1(message: types.Message, messaging_type="start"):
@@ -713,4 +745,7 @@ async def callback_handler(query: types.CallbackQuery, state):
         await process_help_command_4(query.message)
 
 if __name__ == '__main__':
+    # loop.create_task(make_queue_228(myQueue))
+    # loop.run_until_complete(asyncio.gather(newsProducer(myQueue)))
+
     executor.start_polling(dp, skip_updates=True)

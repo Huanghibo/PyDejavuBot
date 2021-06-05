@@ -370,8 +370,8 @@ async def upload_audio_sample_message(call: types.CallbackQuery, callback_data: 
     keyboard_markup.row(back_btn)
     await call.message.edit_text(
                     f'Вы работаете с папкой "{folder_info[1]}", в режиме загрузки аудио сэмплов\n\n'
-                    'Поддерживаемые форматы - mp3, wav, wma, ogg, flac, aac, opus;\n'
-                    'Максимальный размер файла - 20 мб, это лимит установленный для Телеграмом для ботов;\n',
+                    'Поддерживаемые форматы - mp3, wav, wma, ogg, flac, aac, opus;\n\n'
+                    'Максимальный размер файла - 20 мб, это лимит установленный Телеграмом для ботов;',
                     parse_mode="HTML",
                     reply_markup=keyboard_markup)
     await Upload_Sample.step_1.set()
@@ -412,25 +412,23 @@ async def upload_audio_sample_step_1_message(message: types.Message, state: FSMC
 
     await state.update_data({'audio_sample_name': user_data["audio_sample_file_name"]})
 
-    """
     # Проверяем расширение файла
     if user_data["audio_sample_file_extensions"].lower() in ('.aac', '.wav', '.mp3', '.wma', '.ogg', '.flac', '.opus'):
-        await Upload_Sample.step_2.set()
+        # await Upload_Sample.step_2.set()
 
-        await message.reply(
-                        f'Название вашего аудио файла : <code>{user_data["audio_sample_file_name"]}</code>\n\n'
-                        'Введите название аудио сэмпла. Это название будет отображатся во время распознавания викторины',
-                        parse_mode="HTML",
-                        reply_markup=keyboard_markup)
+        # await message.reply(
+        #                 f'Название вашего аудио файла : <code>{user_data["audio_sample_file_name"]}</code>\n\n'
+        #                 'Введите название аудио сэмпла. Это название будет отображатся во время распознавания викторины',
+        #                 parse_mode="HTML",
+        #                 reply_markup=keyboard_markup)
+        await upload_audio_sample_step_2_message(message, state)
     elif not user_data["audio_sample_file_extensions"]:
         await message.reply('Мы не можем определить формат аудио записи. Возможно название файла очень длинное.\nИзмените название файла на более короткую и повторите попытку еще раз', reply_markup=keyboard_markup)
         return
     else:
         await message.reply(f'Мы "{user_data["audio_sample_file_extensions"]}" формат не принемаем, пришлите в другом формате\n\n', reply_markup=keyboard_markup)
         return
-    """
 
-    await upload_audio_sample_step_2_message(message, state)
 
 
 @dp.message_handler(state=Upload_Sample.step_2, content_types=types.ContentTypes.TEXT)
@@ -469,7 +467,6 @@ async def upload_audio_sample_step_2_message(message: types.Message, state: FSMC
 
     managment_msg = await message.reply('Задача поставлена в поток!')
 
-    await Upload_Sample.step_1.set()
     await myQueue.put("1")
 
     keyboard_markup = types.InlineKeyboardMarkup()

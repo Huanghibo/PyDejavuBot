@@ -12,10 +12,7 @@ import base64
 import asyncio
 from dataclasses import dataclass
 from functools import wraps, partial
-try:
-    from bot.user_data import config
-except ImportError:
-    pass  # Fixme
+from bot.user_data import config
 
 
 # https://pynative.com/python-generate-random-string/
@@ -31,14 +28,14 @@ class path:
     user_id: str
     user_folder: str = ""
 
-    def tmp_audio_samples(self, file_name = "") -> str:
+    def tmp_audio_samples(self, file_name="") -> str:
         return f'{config.USER_DATA_PATH}/audio_sample/tmp/{self.user_id}/{self.user_folder}/{file_name}'
-    def processed_audio_samples(self, file_name = "") -> str:
+    def processed_audio_samples(self, file_name="") -> str:
         return f'{config.USER_DATA_PATH}/audio_sample/processed/{self.user_id}/{self.user_folder}/{file_name}'
 
-    def tmp_query_audio(self, file_name = "") -> str:
+    def tmp_query_audio(self, file_name="") -> str:
         return f'{config.USER_DATA_PATH}/query/tmp/{self.user_id}/{self.user_folder}/{file_name}'
-    def processed_query_audio(self, file_name = "") -> str:
+    def processed_query_audio(self, file_name="") -> str:
         return f'{config.USER_DATA_PATH}/query/processed/{self.user_id}/{self.user_folder}/{file_name}'
 
     def fingerprint_db(self) -> str:

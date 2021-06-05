@@ -1,8 +1,6 @@
 # PyDejavuBot
 [![CodeFactor](https://www.codefactor.io/repository/github/zhymabekroman/pydejavubot/badge)](https://www.codefactor.io/repository/github/zhymabekroman/pydejavubot)
 
-|**English verssion** | [Русская версия](https://github.com/ZhymabekRoman/PyDejavuBot/blob/master/README-RU.md) |
-
 **PyDejavuBot** (a.k.a. **LenDejavuBot**) - Free Open Source Telegram Bot, designed for recognize a melody. The main focus of the bot is stability, speed, and audio recognitions quality. It can be considered an analogue of Shazam, but compared to Shazam and other similar audio recognition services, PyDejavuBot does not have its own centralized database with fingerprint, the user himself adds audio recordings and indicates the name. Audio recognition system based on Landmark audio fingerprinting system.
 
 ## Destination
@@ -10,9 +8,9 @@ In musical institutions, in addition to theory and practice, and the study of co
 
 Bot operation principle:
 
-1 > You upload to bot the audio recording that the teacher gave you to prepare for the quiz
+1) You upload to bot the audio recording that the teacher gave you to prepare for the quiz
 
-2 > During a quiz, you go to a bot, turn on Quiz Mode, and send an audio message with a quiz and bot give you the title of the recording
+2) During a quiz, you go to a bot, turn on Quiz Mode, and send an audio message with a quiz and bot give you the title of the recording
 
 Shazam is not particularly useful here, since it sometimes does not correctly recognize the audio recording itself. If even correctly recognized, then the information of the recognized record is not enough for the teacher.
 
@@ -29,7 +27,7 @@ sudo apt install python3 python3-pip ffmpeg git -y
 ```
 git clone https://github.com/ZhymabekRoman/PyDejavuBot
 ```
-3) Install all python depends, that required for bot operation, via pip3: 
+3) Install all python depends, that required for bot operation, via pip3:
 ```
 cd PyDejavuBot/
 pip3 install -r requirements.txt
@@ -66,5 +64,3 @@ Please make sure to update the tests as appropriate.
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
-
-_*WIP - Working in process_

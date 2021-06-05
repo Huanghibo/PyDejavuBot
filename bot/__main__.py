@@ -371,8 +371,7 @@ async def upload_audio_sample_message(call: types.CallbackQuery, callback_data: 
     await call.message.edit_text(
                     f'Вы работаете с папкой "{folder_info[1]}", в режиме загрузки аудио сэмплов\n\n'
                     'Поддерживаемые форматы - mp3, wav, wma, ogg, flac, aac, opus;\n'
-                    'Максимальный размер файла - 20мб. Это максимальный размер для Telegram ботов;\n'
-                    'Файлы нужно загружать по одному !\n\n',
+                    'Максимальный размер файла - 20 мб, это лимит установленный для Телеграмом для ботов;\n',
                     parse_mode="HTML",
                     reply_markup=keyboard_markup)
     await Upload_Sample.step_1.set()
@@ -548,6 +547,8 @@ async def remove_audio_sample_step_1_message(message: types.Message, state: FSMC
 
     managment_msg = await message.reply('Задача поставлена в поток!')
 
+    await myQueue.put("1")
+
     try:
         if len(folder_samples) == 1:
             os.remove(path_list.fingerprint_db())
@@ -559,6 +560,8 @@ async def remove_audio_sample_step_1_message(message: types.Message, state: FSMC
         await message.reply('Извините, что-то пошло не так', reply_markup=keyboard_markup)
     else:
         await message.reply(f'Аудио сэмпл "{user_data["chosen_sample"]}" успешно удален', reply_markup=keyboard_markup)
+
+    await myQueue.get()
 
 
 @dp.callback_query_handler(recognize_query_cb.filter(), state='*')

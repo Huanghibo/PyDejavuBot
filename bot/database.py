@@ -7,6 +7,7 @@
 # ===============================================================================================================================
 
 import sqlite3
+from icecream import ic
 
 
 class SQLighter:
@@ -47,6 +48,10 @@ class SQLighter:
         """Удаляет папку"""
         with self.connection:
             self.cursor.execute("DELETE FROM folders WHERE folder_id= :0", {'0': folder_id})
+
+    def select_audio_sample(self, sample_id):
+        # TODO
+        pass
 
     def register_audio_sample(self, folder_id, audio_sample_name, file_id) -> None:
         """Регистрирует сэмпл в папку"""

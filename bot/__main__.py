@@ -137,7 +137,6 @@ async def match_audio_query(message, input_file, fingerprint_db) -> types.Messag
             cmd = ['python', 'bot/library/audfprint-master/audfprint.py', 'match', '-d', fingerprint_db, input_file, '-n', '120', '-D', '2000', '-X', '-F', '18']
         elif config.audfprint_mode == '1':
             cmd = ['python', 'bot/library/audfprint-master/audfprint.py', 'match', '-d', fingerprint_db, input_file]
-        print(" ".join(cmd))
         proc = await asyncio.create_subprocess_exec(*cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
         stdout, stderr = await proc.communicate()
         logging.info(f'[{cmd!r} exited with {proc.returncode}]')
@@ -146,7 +145,6 @@ async def match_audio_query(message, input_file, fingerprint_db) -> types.Messag
         assert os.path.exists(fingerprint_db)
         assert proc.returncode == 0
     except Exception as ex:
-        print(ex)
         managment_msg = await message.edit_text(message_text + " Критическая ошибка, отмена...")
         raise
     else:
@@ -406,7 +404,7 @@ async def upload_audio_sample_step_1_message(message: types.Message, state: FSMC
     # Проверка на загруженность файла в текущей папки через db
     file_unique_id = user_data["audio_sample_file_info"].file_unique_id
     for sample in db.select_folder_samples(user_data["folder_id"]):
-        if sample[4] == file_unique_id:
+        if sample[3] == file_unique_id:
             await message.reply(f'В папке этот аудио сэмпл уже существует под названием "{sample[1]}"\nОтправьте другой файл', reply_markup=keyboard_markup)
             return
 

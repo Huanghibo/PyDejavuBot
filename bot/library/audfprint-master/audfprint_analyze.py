@@ -564,17 +564,17 @@ def glob2hashtable(pattern, density=20.0):
 
     ht = hash_table.HashTable()
     filelist = glob.glob(pattern)
-    initticks = time.clock()
+    # initticks = time.clock()
     totdur = 0.0
     tothashes = 0
     for ix, file_ in enumerate(filelist):
-        #print(time.ctime(), "ingesting #", ix, ":", file_, "...")
+        # print(time.ctime(), "ingesting #", ix, ":", file_, "...")
         dur, nhash = g2h_analyzer.ingest(ht, file_)
         totdur += dur
         tothashes += nhash
-    elapsedtime = time.clock() - initticks
-    #print("Added", tothashes, "(", tothashes / totdur, "hashes/sec) at ",
-          #elapsedtime / totdur, "x RT")
+    # elapsedtime = time.clock() - initticks
+    # print("Added", tothashes, "(", tothashes / totdur, "hashes/sec) at ",
+          # elapsedtime / totdur, "x RT")
     return ht
 
 

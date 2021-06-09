@@ -186,12 +186,12 @@ class HashTable(object):
         f = file_object or gzip.open(name, 'wb')
         pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
         self.dirty = False
-        nhashes = sum(self.counts)
+        # nhashes = sum(self.counts)
         # Report the proportion of dropped hashes (overfull table)
-        dropped = nhashes - sum(np.minimum(self.depth, self.counts))
-        #print("Saved fprints for", sum(n is not None for n in self.names),
-         #     "files (", nhashes, "hashes) to", name,
-          #    "(%.2f%% dropped)" % (100.0 * dropped / max(1, nhashes)))
+        # dropped = nhashes - sum(np.minimum(self.depth, self.counts))
+        # print("Saved fprints for", sum(n is not None for n in self.names),
+        #      "files (", nhashes, "hashes) to", name,
+        #      "(%.2f%% dropped)" % (100.0 * dropped / max(1, nhashes)))
 
     def load(self, name):
         """ Read either pklz or mat-format hash table file """
@@ -200,12 +200,12 @@ class HashTable(object):
             self.load_matlab(name)
         else:
             self.load_pkl(name)
-        nhashes = sum(self.counts)
+        # nhashes = sum(self.counts)
         # Report the proportion of dropped hashes (overfull table)
-        dropped = nhashes - sum(np.minimum(self.depth, self.counts))
-        #print("Read fprints for", sum(n is not None for n in self.names),
-         #     "files (", nhashes, "hashes) from", name,
-          #    "(%.2f%% dropped)" % (100.0 * dropped / max(1, nhashes)))
+        # dropped = nhashes - sum(np.minimum(self.depth, self.counts))
+        # print("Read fprints for", sum(n is not None for n in self.names),
+        #      "files (", nhashes, "hashes) from", name,
+        #      "(%.2f%% dropped)" % (100.0 * dropped / max(1, nhashes)))
 
     def load_pkl(self, name, file_object=None):
         """ Read hash table values from pickle file <name>. """
@@ -354,7 +354,7 @@ class HashTable(object):
         self.names[id_] = None
         self.hashesperid[id_] = 0
         self.dirty = True
-        #print("Removed", name, "(", hashes_removed, "hashes).")
+        # print("Removed", name, "(", hashes_removed, "hashes).")
 
     def retrieve(self, name):
         """Return an np.array of (time, hash) pairs found in the table."""

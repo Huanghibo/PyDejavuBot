@@ -58,7 +58,7 @@ def ensure_dir(dirname):
         # directory gets created before we get to it.
         try:
             os.makedirs(dirname)
-        except:
+        except Exception:
             pass
 
 
@@ -124,7 +124,7 @@ def file_precompute_peaks_or_hashes(analyzer, filename, precompdir,
 def file_precompute(analyzer, filename, precompdir, type='peaks', skip_existing=False, strip_prefix=None):
     """ Perform precompute action for one file, return list
         of message strings """
-    #print(time.ctime(), "precomputing", type, "for", filename, "...")
+    # print(time.ctime(), "precomputing", type, "for", filename, "...")
     hashes_not_peaks = (type == 'hashes')
     return file_precompute_peaks_or_hashes(analyzer, filename, precompdir,
                                            hashes_not_peaks=hashes_not_peaks,
@@ -490,13 +490,13 @@ def main(argv):
                skip_existing=args['--skip-existing'],
                strip_prefix=args['--wavdir'])
 
-    elapsedtime = time_clock() - initticks
+    # elapsedtime = time_clock() - initticks
     if analyzer and analyzer.soundfiletotaldur > 0.:
         pass
-        #print("Processed "
-         #     + "%d files (%.1f s total dur) in %.1f s sec = %.3f x RT" \
-         #     % (analyzer.soundfilecount, analyzer.soundfiletotaldur,
-         #        elapsedtime, (elapsedtime / analyzer.soundfiletotaldur)))
+        # print("Processed "
+        #     + "%d files (%.1f s total dur) in %.1f s sec = %.3f x RT" \
+        #     % (analyzer.soundfilecount, analyzer.soundfiletotaldur,
+        #        elapsedtime, (elapsedtime / analyzer.soundfiletotaldur)))
 
     # Save the hash table file if it has been modified
     if hash_tab and hash_tab.dirty:

@@ -44,7 +44,7 @@ def process_info():
 
 def log(message):
     """ log info with stats """
-    #print('%s physmem=%s utime=%s %s' % (time.ctime(), process_info()))
+    # print('%s physmem=%s utime=%s %s' % (time.ctime(), process_info()))
 
 
 def encpowerof2(val):
